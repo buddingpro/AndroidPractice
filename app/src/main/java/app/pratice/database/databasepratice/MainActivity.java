@@ -53,6 +53,7 @@ public class MainActivity extends AppCompatActivity {
         delete = (Button) findViewById(R.id.deleteButton);
 
         //new change
+        //new change 2
     }
 
 
