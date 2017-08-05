@@ -57,7 +57,7 @@ public class MainActivity extends AppCompatActivity {
         //new change 3
 
         for(int i = 0; i<10;i++){
-
+            j=0;
         }
     }
 
