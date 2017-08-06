@@ -2,6 +2,7 @@ package app.pratice.database.databasepratice;
 
 import android.content.Context;
 import android.content.DialogInterface;
+import android.database.Cursor;
 import android.graphics.Path;
 import android.os.Bundle;
 import android.support.v7.app.AlertDialog;
@@ -21,29 +22,22 @@ public class MainActivity extends AppCompatActivity {
 
     EditText editTextPrincipal, editTextInterest, editTextFDtype;
 
-    Button save, delete;
+    Button save, delete, retrieve , update;
 
     String ProfileName;
+
+    public static final String MainActivity_TAG = "View Operations";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         initializeComponents();
-
-        save.setOnClickListener(new View.OnClickListener() {
-
-            @Override
-            public void onClick(View view) {
-                DailogCreator();
-
-            }
-        });
-
+        init_Listeners();
+        Log.i(MainActivity_TAG, "onCreate: View Created");
     }
 
     private void initializeComponents() {
-
 
         editTextPrincipal = (EditText) findViewById(R.id.textView_PrincipalValue);
         editTextInterest = (EditText) findViewById(R.id.textView_InterestValue);
@@ -51,35 +45,94 @@ public class MainActivity extends AppCompatActivity {
 
         save = (Button) findViewById(R.id.saveButton);
         delete = (Button) findViewById(R.id.deleteButton);
-
-        //new change
-        //new change 2
-        //new change 3
-
-        for(int i = 0; i<10;i++){
-            j=0;
-        }
+        retrieve = (Button) findViewById(R.id.ButtonRetrieve);
+        update = (Button) findViewById(R.id.UpdateButton);
     }
 
 
-    private void saveDetails(String tableName) {
+    private void init_Listeners(){
 
-        DatabaseHelper database = new DatabaseHelper(this, "practice.db");
-        database.setTableName(tableName);
-        boolean result = database.insertData(tableName, editTextPrincipal.getText().toString(), editTextInterest.getText().toString(), editTextFDtype.getText().toString());
+        save.setOnClickListener(new View.OnClickListener() {
 
-        Context ctx = this; // for Activity, or Service. Otherwise simply get the context.
-        String dbname = "practice.db";
-        File dbpath = ctx.getDatabasePath(dbname);
+            @Override
+            public void onClick(View view) {
+                saveDetails();
 
-        if(true) {
-            Toast.makeText(this, "inserted " + dbpath, Toast.LENGTH_SHORT).show();
-            Log.d("LOCATION",dbpath.toString());
+            }
+        });
+
+        delete.setOnClickListener(new View.OnClickListener() {
+
+            @Override
+            public void onClick(View view) {
+                deleteEntry();
+
+            }
+        });
+
+        retrieve.setOnClickListener(new View.OnClickListener() {
+
+            @Override
+            public void onClick(View view) {
+                getDetails();
+
+            }
+        });
+
+        update.setOnClickListener(new View.OnClickListener() {
+
+            @Override
+            public void onClick(View view) {
+                updateInfo();
+            }
+        });
+
+    }
+
+    private void saveDetails() {
+
+        DatabaseHelper database = new DatabaseHelper(this);
+        database.InsertData(database,editTextPrincipal.getText().toString(),editTextInterest.getText().toString());
+        Toast.makeText(getBaseContext(),"Data inserted",Toast.LENGTH_SHORT).show();
+        database.closeDatabase();
+    }
+
+    private void getDetails(){
+        DatabaseHelper database = new DatabaseHelper(this);
+        Cursor cursor =  database.getData(database);
+        cursor.moveToFirst();
+        do{
+            Log.i(MainActivity_TAG ,cursor.getString(0) +" & "+cursor.getString(1));
         }
+        while ( cursor.moveToNext());
+
+        Log.i(MainActivity_TAG ,"Details received");
+        database.closeDatabase();
     }
 
 
-    private void DailogCreator() {
+    private void deleteEntry() {
+
+        String inputData = editTextFDtype.getText().toString();
+        DatabaseHelper database = new DatabaseHelper(this);
+        Cursor cursor = database.getRow(database, inputData);
+        cursor.moveToFirst();
+        do {
+
+            Log.i(MainActivity_TAG ,cursor.getString(0));
+            database.delete(database,inputData,cursor.getString(0));
+        }
+        while(cursor.moveToNext());
+
+    }
+
+    private void updateInfo(){
+        String inputData = editTextFDtype.getText().toString();
+        DatabaseHelper database = new DatabaseHelper(this);
+        database.update(database,editTextPrincipal.getText().toString(),editTextInterest.getText().toString() ,inputData);
+    }
+
+    private void DialogCreator() {
 
         AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(this);
         alertDialogBuilder.setTitle("Save Profile");
@@ -98,7 +151,7 @@ public class MainActivity extends AppCompatActivity {
                     public void onClick(DialogInterface dialog, int which) {
                         ProfileName = input.getText().toString();
 
-                        saveDetails(ProfileName);
+                        saveDetails();
                     }
                 });
 
